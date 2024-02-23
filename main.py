@@ -6,22 +6,33 @@ class AddressBook(UserDict):
     def __init__(self):
         self.contacts = {}
         self.records_per_page = 2
-        self.record_counter = 0
+        self.record_counter = 0 #counts up to len(self.contacts)
+        self.record_counter2 = 0 #counts up to self.record_per_page
         self.conctact_page = {}
    
-    def iterator(self):
-        print('Start')
-        while self.records_per_page >= self.record_counter:
-            self.conctact_page = {}
-            self.record_counter = 0
-            print( 'Im here')
-            for contact_name, contact_record in address_book.contacts.items(): 
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        while self.record_counter < len(self.contacts):
+            # print('Start')      
+            for contact_name, contact_record in address_book.contacts.items():
+                # print('1')
                 # print(contact_name)
                 # print(contact_record)
                 # print(self.conctact_page)
                 self.conctact_page[contact_name] = contact_record
+                # print(self.conctact_page)
                 self.record_counter += 1
-        yield self.conctact_page
+                self.record_counter2 =+ 1
+                if self.record_counter2 == self.records_per_page:
+                    result = self.conctact_page
+                    self.conctact_page = {}
+                    self.record_counter2 = 0
+                    yield result                   
+        self.record_counter = 0
+        self.record_counter2 = 0
+        raise StopIteration
         
 
 class Record():
@@ -67,8 +78,6 @@ class Name(Field):
             print('Name can only contain letters.')
             raise Exception('Name can only contain letters')
             
-
-
 class Phone(Field):
     def __init__(self, value):
         self.value = value
@@ -178,19 +187,18 @@ def show_birthday(user_input):
 
 def show_page(user_input):
     print('|{:^30}|'.format('-----Contacts-----'))
-    my_iterator = address_book.iterator()
-    print(f' This is my iterator {my_iterator}')
-    for contact_name, contact_record in my_iterator:        
-        print('|{:^30}|'.format(contact_name))
-        for phone_number in contact_record.phone_list:
-            print('|{:^30}|'.format(phone_number.value))
-        try:
-            date_to_print = address_book.contacts[contact_name].birthday.date
-            print('|{:^30}|'.format('Birthday'))
-            print('|{:^30}|'.format(str(date_to_print)))
-        except:
-            continue
-    print('|{:^30}|'.format('-----End of Page-----'))
+    for contact_name in address_book:  
+        print(contact_name)      
+    #     print('|{:^30}|'.format(contact_name))
+    #     for phone_number in contact_record.phone_list:
+    #         print('|{:^30}|'.format(phone_number.value))
+    #     try:
+    #         date_to_print = address_book.contacts[contact_name].birthday.date
+    #         print('|{:^30}|'.format('Birthday'))
+    #         print('|{:^30}|'.format(str(date_to_print)))
+    #     except:
+    #         continue
+    # print('|{:^30}|'.format('-----End of Page-----'))
 
 
 def show_all(user_input):
@@ -266,4 +274,5 @@ if __name__ == '__main__':
     add_contact('add contact Marika')
     add_birthday('add birthday Marika 1990 05 20')
     add_phone('add phone Marika 123321')
+    add_contact('add contact Zbigniew')
     main()
