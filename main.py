@@ -5,6 +5,24 @@ from datetime import datetime
 class AddressBook(UserDict):
     def __init__(self):
         self.contacts = {}
+        self.records_per_page = 2
+        self.record_counter = 0
+        self.conctact_page = {}
+   
+    def iterator(self):
+        print('Start')
+        while self.records_per_page >= self.record_counter:
+            self.conctact_page = {}
+            self.record_counter = 0
+            print( 'Im here')
+            for contact_name, contact_record in address_book.contacts.items(): 
+                # print(contact_name)
+                # print(contact_record)
+                # print(self.conctact_page)
+                self.conctact_page[contact_name] = contact_record
+                self.record_counter += 1
+        yield self.conctact_page
+        
 
 class Record():
     def __init__(self, name):
@@ -43,7 +61,7 @@ class Name(Field):
     @value.setter
     def value(self, new_value):
         if new_value.isalpha():
-            print('all good')
+            print('All good, name contains letters only.')
             self.__value = new_value
         else:
             print('Name can only contain letters.')
@@ -66,9 +84,9 @@ class Birthday(Field):
         self.date = date(int(year_of_birth), int(month_of_birth), int(day_of_birth))
 
     def days_to_birthday(self):
-        delta1 = datetime(date.today().year, self.date.month, self.date.day)
-        delta2 = datetime(date.today().year+1, self.date.month, self.date.day)
-        return ((delta1 if delta1 > datetime.today() else delta2) - datetime.today()).days
+        this_year_birthday = datetime(date.today().year, self.date.month, self.date.day)
+        next_year_birthday = datetime(date.today().year+1, self.date.month, self.date.day)
+        return ((this_year_birthday if this_year_birthday > datetime.today() else next_year_birthday) - datetime.today()).days
 
 address_book = AddressBook()
 
@@ -158,6 +176,23 @@ def show_birthday(user_input):
     else:
         print(f'There is no contact {contact_name}')
 
+def show_page(user_input):
+    print('|{:^30}|'.format('-----Contacts-----'))
+    my_iterator = address_book.iterator()
+    print(f' This is my iterator {my_iterator}')
+    for contact_name, contact_record in my_iterator:        
+        print('|{:^30}|'.format(contact_name))
+        for phone_number in contact_record.phone_list:
+            print('|{:^30}|'.format(phone_number.value))
+        try:
+            date_to_print = address_book.contacts[contact_name].birthday.date
+            print('|{:^30}|'.format('Birthday'))
+            print('|{:^30}|'.format(str(date_to_print)))
+        except:
+            continue
+    print('|{:^30}|'.format('-----End of Page-----'))
+
+
 def show_all(user_input):
     print('|{:^30}|'.format('-----All contacts-----'))
     for contact_name, contact_record in address_book.contacts.items():        
@@ -169,6 +204,11 @@ def show_all(user_input):
             print('|{:^30}|'.format('Birthday'))
             print('|{:^30}|'.format(str(date_to_print)))
     print('|{:^30}|'.format('-----End of list-----'))
+
+def set_page_size(user_input):
+    counter = user_input.split(' ')[3]
+    address_book.records_per_page = counter
+    print(f'Records per page set to {address_book.records_per_page}')
 
 def unknown_command(user_input):
     print('Unknown command')
@@ -183,6 +223,7 @@ def help(user_input):
     print('show phone NAME')
     print('show birthday NAME')
     print('show all')
+    print('set page size NUMBER')
 
 COMMANDS = {
     'hello': hello,
@@ -197,7 +238,9 @@ COMMANDS = {
     'add birthday': add_birthday,
     'show phone': show_phone,
     'show birthday': show_birthday,
+    'show page': show_page,
     'show all': show_all,
+    'set page size': set_page_size,
     'help': help
 }
 
